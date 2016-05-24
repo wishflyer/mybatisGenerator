@@ -1,0 +1,121 @@
+﻿<#include "/macro.include"/>
+<#assign className = table.className>
+<#assign classNameFirstLower = table.classNameFirstLower>
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<#macro mapperEl value>${r"#{"}${value}}</#macro>
+<#macro namespace>${className}.</#macro>
+
+<!-- 不使用namespace的话sql搜索定位会比较方便 -->
+<mapper namespace="${basepackage}.dao.${className}">
+
+	<resultMap id="${className}" type="${basepackage}.entity.${className}">
+        <#list table.columns as column>
+            <result property="${column.columnNameLower}" column="${column.sqlName}"/>
+		</#list>
+	</resultMap>
+	
+	<!-- 用于select查询公用抽取的列 -->
+	<sql id="BaseColumns">
+	    <![CDATA[
+            <#list table.columns as column>${column.sqlName}<#if column_has_next>,</#if></#list>
+	    ]]>
+	</sql>
+
+<sql id="BaseWhere">
+    <where>
+            <#list table.columns as column>
+                <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
+                    AND ${column.sqlName} = <@mapperEl column.columnNameFirstLower/><#if column_has_next></#if>
+                </if>
+        </#list>
+    </where>
+
+ </sql>
+
+<sql id="UpdateWhere">
+    <where>
+            <#list table.notPkColumns as column>
+                <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
+                    AND ${column.sqlName} = <@mapperEl column.columnNameFirstLower/><#if column_has_next>,</#if>
+                </if>
+            </#list>
+        </where>
+
+    </sql>
+
+	<insert id="insert">
+            <![CDATA[
+                INSERT INTO ${table.sqlName} (
+                <#list table.columns as column>
+                    ${column.sqlName} <#if column_has_next>,</#if>
+                </#list>
+                ) VALUES (
+                <#list table.columns as column>
+                    <@mapperEl column.columnNameFirstLower/> <#if column_has_next>,</#if>
+                </#list>
+                )
+            ]]>
+
+	</insert>
+    
+	<update id="update" >
+        UPDATE ${table.sqlName}
+         <set>
+             <#list table.notPkColumns as column>
+                 <if test="${column.columnNameFirstLower } != null">
+                      ${column.sqlName} = <@mapperEl column.columnNameFirstLower/><#if column_has_next>,</#if>
+                  </if>
+             </#list>
+        </set>
+        	<include  refid="UpdateWhere" />
+	</update>
+
+    <delete id="delete">
+        <![CDATA[
+            DELETE FROM ${table.sqlName} WHERE
+            <#list table.compositeIdColumns as column>
+            ${column.sqlName} = <@mapperEl 'id'/> <#if column_has_next> AND </#if>
+            </#list>
+        ]]>
+    </delete>
+    
+    <select id="getById" resultMap="${className}">
+		SELECT <include refid="BaseColumns" />
+	    <![CDATA[
+		    FROM ${table.sqlName} 
+	        WHERE 
+				<#list table.compositeIdColumns as column>
+		        ${column.sqlName} = <@mapperEl 'id'/> <#if column_has_next> AND </#if>
+		        </#list>    
+	    ]]>
+	</select>
+	
+
+		
+    <select id="findPageCount" resultType="long">
+        SELECT count(1) FROM ${table.sqlName}
+		<include refid="BaseWhere"/>
+    </select>
+
+    <select id="findPage" resultMap="${className}">
+    	SELECT <include refid="BaseColumns" />
+	    FROM ${table.sqlName} 
+		<include refid="BaseWhere"/>
+    </select>
+
+    <#list table.columns as column>
+    <#if column.unique && !column.pk>
+    <select id="getBy${column.columnName}" resultMap="${className}" parameterType="${column.javaType}">
+	    SELECT <include refid="BaseColumns"/>
+	    <![CDATA[
+	        FROM ${table.sqlName} where ${column.sqlName} = <@mapperEl column.columnNameLower/>
+	    ]]>
+    </select>
+    
+    </#if>
+	</#list>
+	
+</mapper>
+

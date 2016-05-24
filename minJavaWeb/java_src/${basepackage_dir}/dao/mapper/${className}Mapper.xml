@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<#include "/macro.include"/>
+<#assign className = table.className>
+<#assign classNameFirstLower = table.classNameFirstLower>
+<#macro mapperEl value>${r"#{"}${value}}</#macro>
+<#macro mapperE2 value type>${r"#{"}${value},jdbcType=${type}}</#macro>
+<#macro mapperE3 value type>${r"#{"}item.${value},jdbcType=${type}}</#macro>
+<#macro namespace>${className}.</#macro>
+
+<!-- 不使用namespace的话sql搜索定位会比较方便 -->
+<mapper namespace="${basepackage}.dao.${className}">
+
+	<resultMap id="${className}" type="${basepackage}.entity.${className}">
+    <#list table.columns as column>
+        <result property="${column.columnNameLower}" column="${column.sqlName}"/>
+    </#list>
+	</resultMap>
+
+	<!-- 用于select查询公用抽取的列 -->
+	<sql id="BaseColumns">
+	    <![CDATA[
+            <#list table.columns as column>${column.sqlName}<#if column_has_next>,</#if></#list>
+	    ]]>
+	</sql>
+
+    <sql id="BaseWhere">
+        <where>
+        <#list table.columns as column>
+            <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
+                AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
+            </if>
+        </#list>
+        </where>
+     </sql>
+
+    <sql id="PageWhere">
+        <where>
+        <#list table.columns as column>
+            <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
+                AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
+            </if>
+        </#list>
+        </where>
+        limit <if test="ddPageParmStart != null and ddPageParmStart != ''">${r"#{"}ddPageParmStart}</if>,<if test="ddPageParmSize != null and ddPageParmSize != ''">${r"#{"}ddPageParmSize}</if>
+    </sql>
+
+    <sql id="UpdateWhere">
+        <where>
+        <#list table.notPkColumns as column>
+            <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
+                AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next>,</#if>
+            </if>
+        </#list>
+        </where>
+
+    </sql>
+
+	<insert id="insert">
+        <![CDATA[
+            INSERT INTO ${table.sqlName} (
+            <#list table.columns as column>
+                ${column.sqlName} <#if column_has_next>,</#if>
+            </#list>
+            ) VALUES (
+            <#list table.columns as column>
+                <@mapperE2 column.columnNameFirstLower column.jdbcType/> <#if column_has_next>,</#if>
+            </#list>
+            )
+        ]]>
+	</insert>
+
+
+    <insert id="insertBatch" parameterType="list">
+        insert into ${table.sqlName}(<#list table.columns as column>${column.sqlName}<#if column_has_next>,</#if></#list>)
+        values
+        <foreach collection="list" item="item" index="index" separator="," >
+        (<#list table.columns as column><@mapperE3 column.columnNameFirstLower column.jdbcType/><#if column_has_next>,</#if></#list>)
+        </foreach>
+    </insert>
+
+	<update id="update" >
+         UPDATE ${table.sqlName}
+         <set>
+         <#list table.notPkColumns as column>
+             <if test="${column.columnNameFirstLower } != null">
+                  ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next>,</#if>
+              </if>
+         </#list>
+        </set>
+        	<include  refid="UpdateWhere" />
+	</update>
+
+    <delete id="delete">
+        <![CDATA[
+            DELETE FROM ${table.sqlName} WHERE
+            <#list table.compositeIdColumns as column>
+            ${column.sqlName} = <@mapperEl 'id'/> <#if column_has_next> AND </#if>
+            </#list>
+        ]]>
+    </delete>
+
+    <!-- 批量删除，只适用于该表只有1个主键的情况 -->
+    <delete id="deleteBatch">
+        DELETE FROM ${table.sqlName} WHERE
+        <#list table.compositeIdColumns as column>
+        ${column.sqlName} in
+        <foreach collection="array" index="index" item="item" open="(" separator="," close=")">
+            ${r"#{"}item}
+        </foreach>
+        </#list>
+    </delete>
+
+    <select id="getById" resultMap="${className}">
+		SELECT <include refid="BaseColumns" />
+	    <![CDATA[
+		    FROM ${table.sqlName} 
+	        WHERE 
+				<#list table.compositeIdColumns as column>
+		        ${column.sqlName} = <@mapperEl 'id'/> <#if column_has_next> AND </#if>
+		        </#list>    
+	    ]]>
+	</select>
+
+    <select id="getByPage" resultMap="${className}" parameterType="Map">
+        SELECT <include refid="BaseColumns" />
+        FROM ${table.sqlName}
+        <include refid="PageWhere" />
+    </select>
+
+</mapper>
+
