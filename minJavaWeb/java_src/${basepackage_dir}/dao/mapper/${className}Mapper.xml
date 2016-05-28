@@ -45,17 +45,6 @@
         limit <if test="ddPageParmStart != null and ddPageParmStart != ''">${r"#{"}ddPageParmStart}</if>,<if test="ddPageParmSize != null and ddPageParmSize != ''">${r"#{"}ddPageParmSize}</if>
     </sql>
 
-    <sql id="UpdateWhere">
-        <where>
-        <#list table.notPkColumns as column>
-            <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
-                AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next>,</#if>
-            </if>
-        </#list>
-        </where>
-
-    </sql>
-
 	<insert id="insert">
         <![CDATA[
             INSERT INTO ${table.sqlName} (
@@ -88,8 +77,60 @@
               </if>
          </#list>
         </set>
-        	<include  refid="UpdateWhere" />
-	</update>
+        WHERE
+        <#list table.compositeIdColumns as column>
+        ${column.sqlName} = <@mapperEl 'id'/> <#if column_has_next> AND </#if>
+        </#list>
+    </update>
+
+<#list table.notPkColumns as column>
+    <#if column.columnNameFirstLower == "status">
+    <update id="setInvalid">
+        UPDATE ${table.sqlName}
+        <set>
+            ${column.sqlName} = 9999
+        </set>
+        <include  refid="BaseWhere" />
+    </update>
+
+    <!-- 批量置无效，只适用于该表只有1个主键的情况 -->
+    <update id="setInvalidBatch">
+        UPDATE ${table.sqlName}
+        <set>
+            ${column.sqlName} = 9999
+        </set>
+        <#list table.compositeIdColumns as column>
+        WHERE ${column.sqlName} in
+        <foreach collection="array" index="index" item="item" open="(" separator="," close=")">
+            ${r"#{"}item}
+        </foreach>
+        </#list>
+    </update>
+
+    <update id="setValid">
+        UPDATE ${table.sqlName}
+        <set>
+            ${column.sqlName} = 0
+        </set>
+        <include  refid="BaseWhere" />
+    </update>
+
+    <!-- 批量置有效，只适用于该表只有1个主键的情况 -->
+    <update id="setValidBatch">
+        UPDATE ${table.sqlName}
+        <set>
+            ${column.sqlName} = 0
+        </set>
+        <#list table.compositeIdColumns as column>
+        WHERE ${column.sqlName} in
+        <foreach collection="array" index="index" item="item" open="(" separator="," close=")">
+            ${r"#{"}item}
+        </foreach>
+        </#list>
+    </update>
+
+    </#if>
+</#list>
 
     <delete id="delete">
         <![CDATA[

@@ -1,5 +1,5 @@
 
-<bean id="testManager" class="cn.dd.demo.myBatis.service.TestManager"/>
-<bean id="testDao" class="cn.dd.demo.myBatis.dao.TestDao"/>
+<bean id="weixinAccessTokenManager" class="cn.dd.core.weixin.rest.service.WeixinAccessTokenManager"/>
+<bean id="weixinAccessTokenDao" class="cn.dd.core.weixin.rest.dao.WeixinAccessTokenDao"/>
 <!-- 文件包含后面的这段字符: generator-...-location,则在模板输出的地方,如果发现同名文件,则可将生成内容插入在该标记之后 -->
 <!--  generator-insert-location -->
