@@ -169,5 +169,11 @@
         <include refid="PageWhere" />
     </select>
 
+    <select id="getByParam" resultMap="${className}">
+        SELECT <include refid="BaseColumns" />
+        FROM ${table.sqlName}
+        <include refid="BaseWhere" />
+    </select>
+
 </mapper>
 
