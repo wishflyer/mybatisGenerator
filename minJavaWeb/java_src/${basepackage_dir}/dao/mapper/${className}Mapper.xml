@@ -8,6 +8,7 @@
 <#macro mapperE3 value type>${r"#{"}item.${value},jdbcType=${type}}</#macro>
 <#macro namespace>${className}.</#macro>
 
+
 <!-- 不使用namespace的话sql搜索定位会比较方便 -->
 <mapper namespace="${basepackage}.dao.${className}">
 
@@ -31,6 +32,9 @@
                 AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
             </if>
         </#list>
+            <if test="authorizationParam != null and authorizationParam != ''">
+                AND exists(${r"#{"}authorizationParam,jdbcType=VARCHAR})
+            </if>
         </where>
      </sql>
 
@@ -41,6 +45,9 @@
                 AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
             </if>
         </#list>
+            <if test="authorizationParam != null and authorizationParam != ''">
+                AND exists(${r"#{"}authorizationParam,jdbcType=VARCHAR})
+            </if>
         </where>
         limit <if test="ddPageParmStart != null and ddPageParmStart != ''">${r"#{"}ddPageParmStart}</if>,<if test="ddPageParmSize != null and ddPageParmSize != ''">${r"#{"}ddPageParmSize}</if>
     </sql>
@@ -165,13 +172,13 @@
 
     <select id="getByPage" resultMap="${className}" parameterType="Map">
         SELECT <include refid="BaseColumns" />
-        FROM ${table.sqlName}
+        FROM ${table.sqlName} a
         <include refid="PageWhere" />
     </select>
 
     <select id="getByParam" resultMap="${className}">
         SELECT <include refid="BaseColumns" />
-        FROM ${table.sqlName}
+        FROM ${table.sqlName} a
         <include refid="BaseWhere" />
     </select>
 
