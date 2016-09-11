@@ -25,25 +25,55 @@
 	    ]]>
 	</sql>
 
-    <sql id="BaseWhere">
+    <sql id="PlusWhere">
         <where>
         <#list table.columns as column>
+        <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
+            <if test="${column.columnNameFirstLower } != null">
+                AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
+            </if>
+        <#else>
             <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
                 AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
             </if>
+        </#if>
         </#list>
-            <if test="authorizationParam != null and authorizationParam != ''">
-                AND exists(${r"#{"}authorizationParam,jdbcType=VARCHAR})
-            </if>
+        <if test="authorizationParam != null and authorizationParam != ''">
+            AND exists(${r"#{"}authorizationParam,jdbcType=VARCHAR})
+        </if>
         </where>
      </sql>
+
+
+    <sql id="BaseWhere">
+        <where>
+        <#list table.columns as column>
+        <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
+            <if test="${column.columnNameFirstLower } != null">
+                AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
+            </if>
+        <#else>
+            <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
+                AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
+            </if>
+        </#if>
+        </#list>
+        </where>
+    </sql>
+
 
     <sql id="PageWhere">
         <where>
         <#list table.columns as column>
+        <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
+            <if test="${column.columnNameFirstLower } != null">
+                AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
+            </if>
+        <#else>
             <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
                 AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
             </if>
+        </#if>
         </#list>
             <if test="authorizationParam != null and authorizationParam != ''">
                 AND exists(${r"#{"}authorizationParam,jdbcType=VARCHAR})
@@ -55,13 +85,29 @@
 	<insert id="insert">
         <![CDATA[
             INSERT INTO ${table.sqlName} (
-            <#list table.columns as column>
-                ${column.sqlName} <#if column_has_next>,</#if>
-            </#list>
+                <trim suffix="" suffixOverrides=",">
+                <#list table.columns as column>
+                    <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
+                        <if test="${column.columnNameFirstLower } != null">
+                            ${column.sqlName} <#if column_has_next>,</#if>
+                        </if>
+                    <#else>
+                        <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
+                            ${column.sqlName} <#if column_has_next>,</#if>
+                        </if>
+                    </#if>
+                </#list>
+                </trim>
             ) VALUES (
-            <#list table.columns as column>
-                <@mapperE2 column.columnNameFirstLower column.jdbcType/> <#if column_has_next>,</#if>
-            </#list>
+                <trim suffix="" suffixOverrides=",">
+                <#list table.columns as column>
+                    <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
+                        <if test="${column.columnNameFirstLower } != null"> <@mapperE2 column.columnNameFirstLower column.jdbcType/> <#if column_has_next>,</#if> </if>
+                    <#else>
+                        <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''"> <@mapperE2 column.columnNameFirstLower column.jdbcType/> <#if column_has_next>,</#if> </if>
+                    </#if>
+                </#list>
+                </trim>
             )
         ]]>
 	</insert>
@@ -79,9 +125,15 @@
          UPDATE ${table.sqlName}
          <set>
          <#list table.notPkColumns as column>
-             <if test="${column.columnNameFirstLower } != null">
-                  ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next>,</#if>
-              </if>
+             <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
+                <if test="${column.columnNameFirstLower } != null">
+                    ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next>,</#if>
+                </if>
+             <#else>
+                <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
+                    ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next>,</#if>
+                </if>
+            </#if>
          </#list>
         </set>
         WHERE
@@ -91,11 +143,11 @@
     </update>
 
 <#list table.notPkColumns as column>
-    <#if column.columnNameFirstLower == "status">
+    <#if column.columnNameFirstLower == "state">
     <update id="setInvalid">
         UPDATE ${table.sqlName}
         <set>
-            ${column.sqlName} = 9999
+            ${column.sqlName} = 'S0X'
         </set>
         <include  refid="BaseWhere" />
     </update>
@@ -104,7 +156,7 @@
     <update id="setInvalidBatch">
         UPDATE ${table.sqlName}
         <set>
-            ${column.sqlName} = 9999
+            ${column.sqlName} = 'S0X'
         </set>
         <#list table.compositeIdColumns as column>
         WHERE ${column.sqlName} in
@@ -117,7 +169,7 @@
     <update id="setValid">
         UPDATE ${table.sqlName}
         <set>
-            ${column.sqlName} = 0
+            ${column.sqlName} = 'S0A'
         </set>
         <include  refid="BaseWhere" />
     </update>
@@ -126,7 +178,7 @@
     <update id="setValidBatch">
         UPDATE ${table.sqlName}
         <set>
-            ${column.sqlName} = 0
+            ${column.sqlName} = 'S0A'
         </set>
         <#list table.compositeIdColumns as column>
         WHERE ${column.sqlName} in
@@ -176,10 +228,10 @@
         <include refid="PageWhere" />
     </select>
 
-    <select id="getByParam" resultMap="${className}">
+    <select id="getByParam" resultMap="${className}" parameterType="Map">
         SELECT <include refid="BaseColumns" />
         FROM ${table.sqlName} a
-        <include refid="BaseWhere" />
+        <include refid="PlusWhere" />
     </select>
 
 </mapper>

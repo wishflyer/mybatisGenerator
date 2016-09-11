@@ -60,8 +60,8 @@ public class ${className}ServiceImpl implements ${className}Service {
     }
 
     @Override
-    public List<${className}> getByParam(${className} entity) {
-        return ${classNameLower}Dao.getByParam(entity);
+    public List<${className}> getByParam(Map param) {
+        return ${classNameLower}Dao.getByParam(param);
     }
 
     @Override

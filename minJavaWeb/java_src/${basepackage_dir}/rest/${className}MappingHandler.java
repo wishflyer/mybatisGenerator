@@ -25,16 +25,66 @@ import cn.dd.core.rest.result.RESTStatusCode;
 
 @RestController
 @RequestMapping("/${classNameLower}")
-public class ${className}Handler{
+public class ${className}MappingHandler{
 
     @Resource
     private ${className}Service ${classNameLower}Service;
 
-    @RequestMapping("/getById")
-    public JsonRESTResult getMenuMap(@RequestBody String jsonStr) {
+
+
+    @RequestMapping("/getByParam")
+    public JsonRESTResult getByParam(@RequestBody String jsonStr) {
+
         //获得参数
         Map<String, Object> paramMap;
-        {className} ${classNameLower} = null;
+        List<${className}> ${classNameLower}List = null;
+        try {
+            paramMap = JsonUtils.parseMap(jsonStr);
+            ${classNameLower}List = ${classNameLower}Service.getByParam(paramMap);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        JsonRESTResult restResult = new JsonRESTResult();
+        if(${classNameLower}List != null){
+            restResult.setReturnObj(${classNameLower}List);
+            restResult.setStatusCode(RESTStatusCode.SUCCESS);
+        }else{
+            restResult.setStatusCode(RESTStatusCode.ERROR);
+        }
+        return restResult;
+    }
+
+    @RequestMapping("/getByPage")
+    public JsonRESTResult getByPage(@RequestBody String jsonStr) {
+        //获得参数
+        Map<String, Object> paramMap;
+        List<${className}> ${classNameLower}List = null;
+        try {
+            paramMap = JsonUtils.parseMap(jsonStr);
+            ${classNameLower}List = ${classNameLower}Service.getByPage(paramMap);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        JsonRESTResult restResult = new JsonRESTResult();
+        if(${classNameLower}List != null){
+            restResult.setReturnObj(${classNameLower}List);
+            restResult.setStatusCode(RESTStatusCode.SUCCESS);
+        }else{
+            restResult.setStatusCode(RESTStatusCode.ERROR);
+        }
+        return restResult;
+    }
+
+
+    @RequestMapping("/getById")
+    public JsonRESTResult getById(@RequestBody String jsonStr) {
+        //获得参数
+        Map<String, Object> paramMap;
+        ${className} ${classNameLower} = null;
         try {
             paramMap = JsonUtils.parseMap(jsonStr);
             String id = (String)paramMap.get("id");
@@ -204,5 +254,18 @@ public class ${className}Handler{
         new${className}.set${column.columnName}((${column.javaType}) paramMap.get("${column.columnNameLower}"));
         </#if>
     </#if>
+</#list>
+</#macro>
+
+
+<#macro generateQueryFunction>
+<#list table.columns as column>
+<#if column.javaType=='int'>
+        if(paramMap.get("${column.columnNameLower}")!=null){
+            ${classNameLower}.set${column.columnName}((${column.javaType}) paramMap.get("${column.columnNameLower}"));
+        };
+<#else>
+        ${classNameLower}.set${column.columnName}((${column.javaType}) paramMap.get("${column.columnNameLower}"));
+</#if>
 </#list>
 </#macro>

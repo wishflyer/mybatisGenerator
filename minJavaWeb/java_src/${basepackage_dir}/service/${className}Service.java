@@ -64,7 +64,7 @@ public interface ${className}Service {
     /**
      * 根据条件获取分页对象
      */
-    List<${className}> getByParam(${className} entity);
+    List<${className}> getByParam(Map param);
 
     /**
      * 根据ids批量设置有效

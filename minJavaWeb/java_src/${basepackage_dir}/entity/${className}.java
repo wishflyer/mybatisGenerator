@@ -3,6 +3,7 @@
 package ${basepackage}.entity;
 
 import java.util.*;
+import cn.dd.core.utils.DateUtils;
 
 public class ${className}  implements java.io.Serializable{
 
@@ -23,10 +24,16 @@ public class ${className}  implements java.io.Serializable{
 	public void set${column.columnName}(${column.javaType} value) {
 		this.${column.columnNameLower} = value;
 	}
-	
-	public ${column.javaType} get${column.columnName}() {
-		return this.${column.columnNameLower};
+
+	<#if column.javaType == "Date"|| column.javaType == "TIMESTAMP">
+	public String get${column.columnName}() {
+		return ${column.columnNameLower} == null ? null: DateUtils.toString2(${column.columnNameLower});
 	}
+	<#else>
+	public ${column.javaType} get${column.columnName}() {
+		return ${column.columnNameLower};
+	}
+	</#if>
 	</#list>
 </#macro>
 
