@@ -81,4 +81,8 @@ public interface ${className}Service {
      */
     int insertBatch(List<${className}> entityList);
 
+    /**
+     * 返回记录数
+     */
+    int getCountByParam(Map param);
 }

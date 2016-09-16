@@ -61,8 +61,23 @@ public class ${className}MappingHandler{
         //获得参数
         Map<String, Object> paramMap;
         List<${className}> ${classNameLower}List = null;
+        int totalRows = 0;
         try {
             paramMap = JsonUtils.parseMap(jsonStr);
+
+            //获得总记录数
+            totalRows = ${classNameLower}Service.getCountByParam(paramMap);
+
+            //传入pageSize pageNo
+            int pageSize = (int)paramMap.get("pageSize");
+            int pageNo = (int)paramMap.get("pageNo");
+
+            //计算ddPageParmStart   ddPageParmSize
+            paramMap.put("ddPageParmSize",pageSize);
+            int ddPageParmStart = pageSize * (pageNo - 1);
+            paramMap.put("ddPageParmStart",ddPageParmStart);
+
+            // 查询所需要记录
             ${classNameLower}List = ${classNameLower}Service.getByPage(paramMap);
 
         } catch (IOException e) {
@@ -71,6 +86,7 @@ public class ${className}MappingHandler{
 
         JsonRESTResult restResult = new JsonRESTResult();
         if(${classNameLower}List != null){
+            restResult.setTotalRows(totalRows);
             restResult.setReturnObj(${classNameLower}List);
             restResult.setStatusCode(RESTStatusCode.SUCCESS);
         }else{
@@ -231,7 +247,7 @@ public class ${className}MappingHandler{
             <#else>
                 <#if column.javaType=='int'>
             if(paramMap.get("${column.columnNameLower}")!=null){
-                new${className}.set${column.columnName}((${column.javaType}) paramMap.get("${column.columnNameLower}"));
+                new${className}.set${column.columnName}(Integer.parseInt((String)paramMap.get("${column.columnNameLower}")));
             };
                 <#else>
             new${className}.set${column.columnName}((${column.javaType}) paramMap.get("${column.columnNameLower}"));
@@ -248,7 +264,7 @@ public class ${className}MappingHandler{
     <#else>
         <#if column.javaType=='int'>
         if(paramMap.get("${column.columnNameLower}")!=null){
-            new${className}.set${column.columnName}((${column.javaType}) paramMap.get("${column.columnNameLower}"));
+            new${className}.set${column.columnName}(Integer.parseInt((String)paramMap.get("${column.columnNameLower}")));
         };
         <#else>
         new${className}.set${column.columnName}((${column.javaType}) paramMap.get("${column.columnNameLower}"));
@@ -262,7 +278,7 @@ public class ${className}MappingHandler{
 <#list table.columns as column>
 <#if column.javaType=='int'>
         if(paramMap.get("${column.columnNameLower}")!=null){
-            ${classNameLower}.set${column.columnName}((${column.javaType}) paramMap.get("${column.columnNameLower}"));
+            ${classNameLower}.set${column.columnName}(Integer.parseInt((String)paramMap.get("${column.columnNameLower}")));
         };
 <#else>
         ${classNameLower}.set${column.columnName}((${column.javaType}) paramMap.get("${column.columnNameLower}"));

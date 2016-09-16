@@ -28,7 +28,7 @@
     <sql id="PlusWhere">
         <where>
         <#list table.columns as column>
-        <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
+        <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE' || column.jdbcType = 'INTEGER'>
             <if test="${column.columnNameFirstLower } != null">
                 AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
             </if>
@@ -48,7 +48,7 @@
     <sql id="BaseWhere">
         <where>
         <#list table.columns as column>
-        <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
+        <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE' || column.jdbcType = 'INTEGER'>
             <if test="${column.columnNameFirstLower } != null">
                 AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
             </if>
@@ -65,7 +65,7 @@
     <sql id="PageWhere">
         <where>
         <#list table.columns as column>
-        <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
+        <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE' || column.jdbcType = 'INTEGER'>
             <if test="${column.columnNameFirstLower } != null">
                 AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
             </if>
@@ -79,15 +79,14 @@
                 AND exists(${r"#{"}authorizationParam,jdbcType=VARCHAR})
             </if>
         </where>
-        limit <if test="ddPageParmStart != null and ddPageParmStart != ''">${r"#{"}ddPageParmStart}</if>,<if test="ddPageParmSize != null and ddPageParmSize != ''">${r"#{"}ddPageParmSize}</if>
+        limit <if test="ddPageParmStart != null">${r"#{"}ddPageParmStart}</if>,<if test="ddPageParmSize != null">${r"#{"}ddPageParmSize}</if>
     </sql>
 
 	<insert id="insert">
-        <![CDATA[
             INSERT INTO ${table.sqlName} (
                 <trim suffix="" suffixOverrides=",">
                 <#list table.columns as column>
-                    <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
+                    <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE' || column.jdbcType = 'INTEGER'>
                         <if test="${column.columnNameFirstLower } != null">
                             ${column.sqlName} <#if column_has_next>,</#if>
                         </if>
@@ -101,7 +100,7 @@
             ) VALUES (
                 <trim suffix="" suffixOverrides=",">
                 <#list table.columns as column>
-                    <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
+                    <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE' || column.jdbcType = 'INTEGER'>
                         <if test="${column.columnNameFirstLower } != null"> <@mapperE2 column.columnNameFirstLower column.jdbcType/> <#if column_has_next>,</#if> </if>
                     <#else>
                         <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''"> <@mapperE2 column.columnNameFirstLower column.jdbcType/> <#if column_has_next>,</#if> </if>
@@ -109,7 +108,6 @@
                 </#list>
                 </trim>
             )
-        ]]>
 	</insert>
 
 
@@ -125,7 +123,7 @@
          UPDATE ${table.sqlName}
          <set>
          <#list table.notPkColumns as column>
-             <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
+             <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE' || column.jdbcType = 'INTEGER'>
                 <if test="${column.columnNameFirstLower } != null">
                     ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next>,</#if>
                 </if>
@@ -232,6 +230,12 @@
         SELECT <include refid="BaseColumns" />
         FROM ${table.sqlName} a
         <include refid="PlusWhere" />
+    </select>
+
+    <select id="getCountByParam" resultType="java.lang.Integer"  parameterType="Map">
+      SELECT count(*) totalRows
+      FROM ${table.sqlName} a
+      <include refid="PlusWhere" />
     </select>
 
 </mapper>

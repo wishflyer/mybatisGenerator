@@ -79,5 +79,9 @@ public class ${className}ServiceImpl implements ${className}Service {
         return ${classNameLower}Dao.insertBatch(entityList);
     }
 
+    @Override
+    public int getCountByParam(Map param){
+        return ${classNameLower}Dao.getCountByParam(param);
+    }
 
 }
