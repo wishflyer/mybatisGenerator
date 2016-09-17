@@ -32,7 +32,7 @@
 	<entry key="java_typemapping.java.math.BigDecimal">Long</entry>
 	<entry key="java_typemapping.java.sql.Clob">String</entry>
 	<entry key="java_typemapping.java.lang.String">String</entry>
-	<entry key="java_typemapping.java.lang.Integer">int</entry>
+	<entry key="java_typemapping.java.lang.Integer">Integer</entry>
 	<entry key="java_typemapping.java.util.Date">Date</entry>
 
 	<!-- Mysql -->

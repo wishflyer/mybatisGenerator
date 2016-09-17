@@ -58,7 +58,7 @@
                     ]]>
                 </if>
             <#elseif column.jdbcType = 'VARCHAR' || column.jdbcType = 'LONGVARCHAR'>
-                <#if column.columnNameLower == "id" || column.columnNameLower == "groupId" || column.columnNameLower == "mark" >
+                <#if column.columnNameLower == "id" || column.columnNameLower == "groupId" || column.columnNameLower == "mark" || column.columnNameLower == "state" >
                 <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
                     AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
                 </if>
@@ -96,7 +96,7 @@
                 ]]>
             </if>
             <#elseif column.jdbcType = 'VARCHAR' || column.jdbcType = 'LONGVARCHAR'>
-                <#if column.columnNameLower == "id" || column.columnNameLower == "groupId" || column.columnNameLower == "mark" >
+                <#if column.columnNameLower == "id" || column.columnNameLower == "groupId" || column.columnNameLower == "mark" || column.columnNameLower == "state"  >
             <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
                 AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
             </if>
