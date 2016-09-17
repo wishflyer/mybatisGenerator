@@ -25,18 +25,53 @@
 	    ]]>
 	</sql>
 
-    <sql id="PlusWhere">
+
+
+    <sql id="BaseWhere">
         <where>
         <#list table.columns as column>
-        <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE' || column.jdbcType = 'INTEGER'>
+            <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
             <if test="${column.columnNameFirstLower } != null">
                 AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
             </if>
-        <#else>
+            <#else>
             <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
                 AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
             </if>
-        </#if>
+            </#if>
+        </#list>
+        </where>
+    </sql>
+
+    <sql id="PlusWhere">
+        <where>
+        <#list table.columns as column>
+            <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
+                <if test="${column.columnNameFirstLower }Start != null">
+                    <![CDATA[
+                    AND date_format(${column.sqlName},'%Y-%m-%d') >= ${r"#{"}${column.columnNameFirstLower }Start,jdbcType=TIMESTAMP}
+                    ]]>
+                </if>
+                <if test="${column.columnNameFirstLower }End != null">
+                    <![CDATA[
+                    AND date_format(${column.sqlName},'%Y-%m-%d') <= ${r"#{"}${column.columnNameFirstLower }End,jdbcType=TIMESTAMP}
+                    ]]>
+                </if>
+            <#elseif column.jdbcType = 'VARCHAR' || column.jdbcType = 'LONGVARCHAR'>
+                <#if column.columnNameLower == "id" || column.columnNameLower == "groupId" || column.columnNameLower == "mark" >
+                <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
+                    AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
+                </if>
+                <#else>
+                <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
+                    AND ${column.sqlName} like CONCAT('%','${r"${"}${column.columnNameFirstLower}}','%')
+                </if>
+                </#if>
+            <#else>
+                <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
+                    AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
+                </if>
+            </#if>
         </#list>
         <if test="authorizationParam != null and authorizationParam != ''">
             AND exists(${r"#{"}authorizationParam,jdbcType=VARCHAR})
@@ -45,39 +80,40 @@
      </sql>
 
 
-    <sql id="BaseWhere">
-        <where>
-        <#list table.columns as column>
-        <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE' || column.jdbcType = 'INTEGER'>
-            <if test="${column.columnNameFirstLower } != null">
-                AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
-            </if>
-        <#else>
-            <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
-                AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
-            </if>
-        </#if>
-        </#list>
-        </where>
-    </sql>
-
 
     <sql id="PageWhere">
         <where>
         <#list table.columns as column>
-        <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE' || column.jdbcType = 'INTEGER'>
-            <if test="${column.columnNameFirstLower } != null">
-                AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
+            <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
+            <if test="${column.columnNameFirstLower }Start != null">
+                <![CDATA[
+                AND date_format(${column.sqlName},'%Y-%m-%d') >= ${r"#{"}${column.columnNameFirstLower }Start,jdbcType=TIMESTAMP}
+                ]]>
             </if>
-        <#else>
+            <if test="${column.columnNameFirstLower }End != null">
+                <![CDATA[
+                AND date_format(${column.sqlName},'%Y-%m-%d') <= ${r"#{"}${column.columnNameFirstLower }End,jdbcType=TIMESTAMP}
+                ]]>
+            </if>
+            <#elseif column.jdbcType = 'VARCHAR' || column.jdbcType = 'LONGVARCHAR'>
+                <#if column.columnNameLower == "id" || column.columnNameLower == "groupId" || column.columnNameLower == "mark" >
             <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
                 AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
             </if>
-        </#if>
-        </#list>
-            <if test="authorizationParam != null and authorizationParam != ''">
-                AND exists(${r"#{"}authorizationParam,jdbcType=VARCHAR})
+                <#else>
+            <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
+                AND ${column.sqlName} like CONCAT('%','${r"${"}${column.columnNameFirstLower}}','%')
             </if>
+                </#if>
+            <#else>
+            <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''">
+                AND ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next></#if>
+            </if>
+            </#if>
+        </#list>
+        <if test="authorizationParam != null and authorizationParam != ''">
+        AND exists(${r"#{"}authorizationParam,jdbcType=VARCHAR})
+        </if>
         </where>
         limit <if test="ddPageParmStart != null">${r"#{"}ddPageParmStart}</if>,<if test="ddPageParmSize != null">${r"#{"}ddPageParmSize}</if>
     </sql>
@@ -86,7 +122,7 @@
             INSERT INTO ${table.sqlName} (
                 <trim suffix="" suffixOverrides=",">
                 <#list table.columns as column>
-                    <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE' || column.jdbcType = 'INTEGER'>
+                    <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
                         <if test="${column.columnNameFirstLower } != null">
                             ${column.sqlName} <#if column_has_next>,</#if>
                         </if>
@@ -100,7 +136,7 @@
             ) VALUES (
                 <trim suffix="" suffixOverrides=",">
                 <#list table.columns as column>
-                    <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE' || column.jdbcType = 'INTEGER'>
+                    <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
                         <if test="${column.columnNameFirstLower } != null"> <@mapperE2 column.columnNameFirstLower column.jdbcType/> <#if column_has_next>,</#if> </if>
                     <#else>
                         <if test="${column.columnNameFirstLower } != null and ${column.columnNameFirstLower } != ''"> <@mapperE2 column.columnNameFirstLower column.jdbcType/> <#if column_has_next>,</#if> </if>
@@ -123,7 +159,7 @@
          UPDATE ${table.sqlName}
          <set>
          <#list table.notPkColumns as column>
-             <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE' || column.jdbcType = 'INTEGER'>
+             <#if column.jdbcType = 'TIMESTAMP' || column.jdbcType = 'DATE'>
                 <if test="${column.columnNameFirstLower } != null">
                     ${column.sqlName} = <@mapperE2 column.columnNameFirstLower column.jdbcType/><#if column_has_next>,</#if>
                 </if>
